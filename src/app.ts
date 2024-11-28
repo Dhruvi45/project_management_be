@@ -20,8 +20,7 @@ app.use(projectRouter)
 app.use(taskRouter)
 
 app.get('/', (req, res) => {
-    res.send('Hello, World!');
-  });
+  res.send('Hello, World!');
+});
 
-  
-export {app}
+export default app;
