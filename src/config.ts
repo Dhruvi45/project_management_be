@@ -12,3 +12,7 @@ export const getCorsAllowedOrigins = () => {
   const allowedOrigins = process.env.CorsAllowedOrigins || "";
   return allowedOrigins.split(",");
 };
+
+export const getEnv = () => {
+  return process.env.ENV || "";
+};

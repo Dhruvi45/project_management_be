@@ -5,8 +5,9 @@ import { userRouter } from "./router/user";
 import { projectRouter } from "./router/project";
 import { taskRouter } from "./router/task";
 import { roleRouter } from "./router/role";
-import { getCorsAllowedOrigins } from "./config";
+import { getCorsAllowedOrigins, getEnv } from "./config";
 
+console.log('env', getEnv())
 
 require("./dbConnection")
 // require("./addRole.ts")
