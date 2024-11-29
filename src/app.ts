@@ -12,10 +12,7 @@ console.log('env', getEnv())
 require("./dbConnection")
 // require("./addRole.ts")
 
-
-
 const app = express();
-
 
 app.use(bodyParser.json());
 app.use(express.json());
