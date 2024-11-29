@@ -18,6 +18,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(express.json());
+console.log('getCorsAllowedOrigins()', getCorsAllowedOrigins())
 app.use(cors({ origin:getCorsAllowedOrigins()}))
 
 app.use(userRouter)
