@@ -5,5 +5,10 @@ export const getPort = () => {
 };
 
 export const getMongoUrl = () => {
-    return process.env.MONGO_URL || '';
-  };
+  return process.env.MONGO_URL || "";
+};
+
+export const getCorsAllowedOrigins = () => {
+  const allowedOrigins = process.env.CorsAllowedOrigins || "";
+  return allowedOrigins.split(",");
+};

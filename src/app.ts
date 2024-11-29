@@ -5,6 +5,7 @@ import { userRouter } from "./router/user";
 import { projectRouter } from "./router/project";
 import { taskRouter } from "./router/task";
 import { roleRouter } from "./router/role";
+import { getCorsAllowedOrigins } from "./config";
 
 
 require("./dbConnection")
@@ -14,7 +15,8 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(express.json());
-app.use(cors({ origin:'https://orange-doodle-qx4j9rjqxxp39x5p-3000.app.github.dev',credentials: true,}))
+console.log('getCorsAllowedOrigins()', getCorsAllowedOrigins())
+app.use(cors({ origin:getCorsAllowedOrigins()}))
 // const corsOptions = {
 //   origin: 'https://orange-doodle-qx4j9rjqxxp39x5p-3000.app.github.dev',
 //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -29,7 +31,7 @@ app.use(taskRouter)
 app.use(roleRouter)
 
 app.get('/', (req, res) => {
-  res.header("Access-Control-Allow-Origin", "*");
+  // res.header("Access-Control-Allow-Origin", "*");
   res.send('Hello, World!');
 });
 
