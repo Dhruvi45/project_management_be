@@ -9,21 +9,16 @@ import { getCorsAllowedOrigins } from "./config";
 
 
 require("./dbConnection")
+// require("./addRole.ts")
+
+
 
 const app = express();
 
 
 app.use(bodyParser.json());
 app.use(express.json());
-console.log('getCorsAllowedOrigins()', getCorsAllowedOrigins())
 app.use(cors({ origin:getCorsAllowedOrigins()}))
-// const corsOptions = {
-//   origin: 'https://orange-doodle-qx4j9rjqxxp39x5p-3000.app.github.dev',
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-// };
-
-// app.use(cors(corsOptions));
 
 app.use(userRouter)
 app.use(projectRouter)

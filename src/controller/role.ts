@@ -4,16 +4,13 @@ import Role from "../model/role";
 // Controller to fetch roles for dropdown
 export const getRoleList = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log("call")
     // Fetch roles from the database
-    const roles = await Role.find({}, { _id: 1, name: 1 });
+    const roles = await Role.find().select("_id name");;
 
-    // Transform the result for dropdown
-    const roleList = roles.map(role => ({
-      id: role._id,
-      name: role.name,
-    }));
+   
 
-    res.status(200).json({ success: true, data: roleList });
+    res.status(200).json({ success: true, data: roles });
   } catch (error) {
     console.error("Error fetching roles:", error);
     res.status(500).json({ success: false, message: "Failed to fetch roles" });
