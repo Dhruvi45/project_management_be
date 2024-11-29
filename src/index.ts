@@ -1,4 +1,4 @@
-import { app } from './app';
+import app from './app';
 import { getPort } from './config';
 
 const port =  getPort()
