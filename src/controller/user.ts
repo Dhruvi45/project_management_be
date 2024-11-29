@@ -21,7 +21,34 @@ export const addUser = async (req: Request, res: Response) => {
 // READ: Get all users
 export const getUser = async (req: Request, res: Response) => {
   try {
-    const users = await User.find();
+    const users = await User.aggregate([
+      {
+        $lookup: {
+          from: "roles", // Collection name for Role
+          localField: "role",
+          foreignField: "_id",
+          as: "roleInfo", // Role information will be stored here temporarily
+        },
+      },
+      {
+        $unwind: {
+          path: "$roleInfo", // Unwind the array created by $lookup
+          preserveNullAndEmptyArrays: false, // Omit users without a valid role reference
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          password: 1,
+          role: "$roleInfo.name", // Replace `role` with the `name` from Role
+          createdAt: 1,
+          updatedAt: 1,
+          __v: 1,
+        },
+      },
+    ]);
     res.status(200).json(users);
   } catch (err: unknown) {
     if (err instanceof Error) {

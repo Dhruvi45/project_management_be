@@ -4,7 +4,6 @@ import Role from "../model/role";
 // Controller to fetch roles for dropdown
 export const getRoleList = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log("call")
     // Fetch roles from the database
     const roles = await Role.find().select("_id name");;
 
