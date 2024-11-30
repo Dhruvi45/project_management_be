@@ -18,7 +18,7 @@ export const addProject = async (req: Request, res: Response) => {
       // Validate the members (Team Members)
       const membersExist = await User.find({ _id: { $in: members } });
       if (membersExist.length !== members.length) {
-         res.status(404).json({ error: "Some team members not found" });
+        res.status(404).json({ error: "Some team members not found" });
       } else {
         const newProject = new Project({ title, description, owner, members });
         const savedProject = await newProject.save();
@@ -88,8 +88,8 @@ export const getProjects = async (req: Request, res: Response) => {
 export const getProjectById = async (req: Request, res: Response) => {
   try {
     const project = await Project.findById(req.params.id)
-      // .populate("owner", "name email")
-      // .populate("members", "name email");
+    // .populate("owner", "name email")
+    // .populate("members", "name email");
     if (!project) {
       res.status(404).json({ error: "Project not found" });
     }
@@ -112,7 +112,7 @@ export const updateProject = async (req: Request, res: Response) => {
     if (owner) {
       const ownerExists = await User.findById(owner);
       if (!ownerExists) {
-         res.status(404).json({ error: "Owner not found" });
+        res.status(404).json({ error: "Owner not found" });
       }
     }
 
@@ -121,7 +121,7 @@ export const updateProject = async (req: Request, res: Response) => {
       const membersExist = await User.find({ _id: { $in: members } });
       if (membersExist.length !== members.length) {
         {
-           res.status(404).json({ error: "Some team members not found" });
+          res.status(404).json({ error: "Some team members not found" });
         }
       }
     }
@@ -135,7 +135,7 @@ export const updateProject = async (req: Request, res: Response) => {
       .populate("members", "name email");
 
     if (!updatedProject) {
-       res.status(404).json({ error: "Project not found" });
+      res.status(404).json({ error: "Project not found" });
     }
     res.status(200).json(updatedProject);
   } catch (err: unknown) {
@@ -152,7 +152,7 @@ export const deleteProject = async (req: Request, res: Response) => {
   try {
     const deletedProject = await Project.findByIdAndDelete(req.params.id);
     if (!deletedProject) {
-       res.status(404).json({ error: "Project not found" });
+      res.status(404).json({ error: "Project not found" });
     }
     res.status(200).json({ message: "Project deleted successfully" });
   } catch (err: unknown) {
@@ -164,12 +164,42 @@ export const deleteProject = async (req: Request, res: Response) => {
   }
 };
 
-// Controller to fetch users for dropdown
+// Controller to fetch project for dropdown
 export const getProjectList = async (req: Request, res: Response): Promise<void> => {
   try {
     // Fetch roles from the database
-    const peojects = await Project.find().select("_id title");  
+    const peojects = await Project.find().select("_id title");
     res.status(200).json({ success: true, data: peojects });
+  } catch (error) {
+    console.error("Error fetching roles:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch roles" });
+  }
+};
+
+// Controller to fetch project member for dropdown
+export const getProjectMemberList = async (req: Request, res: Response): Promise<void> => {
+  try {
+    console.log(req.params.id)
+    // Fetch roles from the database
+    const project = await Project.findById(req.params.id)
+      .populate({
+        path: 'members',
+        select: 'id name', // Select only the `id` and `name` fields of the members
+      })
+      .exec();
+
+    if (!project) {
+      console.log('Project not found');
+      res.status(404).json({ error: "Project not found" });
+    } else {
+
+      // Extract members
+      const members = project.members.map((member: any) => ({
+        _id: member._id,
+        name: member.name,
+      }));
+      res.status(200).json({ success: true, data: members });
+    }
   } catch (error) {
     console.error("Error fetching roles:", error);
     res.status(500).json({ success: false, message: "Failed to fetch roles" });

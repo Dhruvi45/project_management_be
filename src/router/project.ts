@@ -5,7 +5,8 @@ import {
   getProjectById,
   updateProject,
   deleteProject,
-  getProjectList
+  getProjectList,
+  getProjectMemberList
 } from '../controller/project';
 
 const router = express.Router();
@@ -19,6 +20,9 @@ router.delete('/projects/:id', deleteProject);
 
 // Route to get user list for dropdown
 router.get("/projectList", getProjectList);
+
+// Route to get project member list for dropdown
+router.get("/projectMemberList/:id", getProjectMemberList);
 
 export { router as projectRouter };
 
