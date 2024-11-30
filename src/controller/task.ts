@@ -32,9 +32,45 @@ export const addTask = async (req: Request, res: Response) => {
 // READ: Get all tasks
 export const getTasks = async (req: Request, res: Response) => {
   try {
-    const tasks = await Task.find()
-      .populate('assignedTo', 'name email')
-      .populate('project', 'title');
+    const tasks = await Task.aggregate([
+      {
+        $lookup: {
+          from: 'users', // Replace 'users' with your actual collection name for 'assignedTo'
+          localField: 'assignedTo',
+          foreignField: '_id',
+          as: 'assignedTo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'projects', // Replace 'projects' with your actual collection name for 'project'
+          localField: 'project',
+          foreignField: '_id',
+          as: 'project',
+        },
+      },
+      {
+        $unwind: '$assignedTo', // Assuming assignedTo is a single reference
+      },
+      {
+        $unwind: '$project', // Assuming project is a single reference
+      },
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          description: 1,
+          completed: {
+            $cond: { if: { $eq: ['$completed', true] }, then: 'Yes', else: 'No' },
+          }, // Converts true/false to Yes/No
+          dueDate: 1,
+          assignedTo: '$assignedTo.name', // Flatten assignedTo to just the name
+          projectTitle: '$project.title', // Rename project to projectTitle
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    ]);
     res.status(200).json(tasks);
   } catch (err: unknown) {
     if (err instanceof Error) {
@@ -49,8 +85,8 @@ export const getTasks = async (req: Request, res: Response) => {
 export const getTaskById = async (req: Request, res: Response) => {
   try {
     const task = await Task.findById(req.params.id)
-      .populate('assignedTo', 'name email')
-      .populate('project', 'title');
+      // .populate('assignedTo', 'name email')
+      // .populate('project', 'title');
     if (!task) { res.status(404).json({ error: 'Task not found' });}
     res.status(200).json(task);
   } catch (err: unknown) {
