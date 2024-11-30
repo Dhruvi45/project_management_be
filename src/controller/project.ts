@@ -179,7 +179,6 @@ export const getProjectList = async (req: Request, res: Response): Promise<void>
 // Controller to fetch project member for dropdown
 export const getProjectMemberList = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log(req.params.id)
     // Fetch roles from the database
     const project = await Project.findById(req.params.id)
       .populate({
