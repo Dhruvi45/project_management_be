@@ -16,3 +16,7 @@ export const getCorsAllowedOrigins = () => {
 export const getEnv = () => {
   return process.env.ENV || "";
 };
+
+export const getJwtSecret = () => {
+  return process.env.JWT_SECRET || "";
+};

@@ -1,14 +1,33 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import User from "../model/user";
+import User, { IUser } from "../model/user";
 import Role from "../model/role";
 import { roleConstent } from "../commonConst";
+import { getJwtSecret } from "../config";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { AuthenticatedRequest } from "../middleware/authorize";
 
 // CREATE: Add a new user
 export const addUser = async (req: Request, res: Response) => {
   try {
     const { name, email, password, role } = req.body;
-    const newUser = new User({ name, email, password, role });
+
+    // Check if the email already exists in the database
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      res.status(409).json({ error: "Email is already in use" });
+      return;
+    }
+    
+    // Hash the password
+    const saltRounds = 10; 
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Create a new user instance with the hashed password
+    const newUser = new User({ name, email, password: hashedPassword, role });
+
+    // Save the user to the database
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (err: unknown) {
@@ -21,7 +40,7 @@ export const addUser = async (req: Request, res: Response) => {
 };
 
 // READ: Get all users
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const users = await User.aggregate([
       {
@@ -52,12 +71,9 @@ export const getUser = async (req: Request, res: Response) => {
       },
     ]);
     res.status(200).json(users);
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      res.status(400).json({ error: err.message });
-    } else {
-      res.status(500).json({ error: "An unknown error occurred" });
-    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -136,17 +152,51 @@ export const getUserList = async (req: Request, res: Response): Promise<void> =>
 
     // Query the Role model
     const role = await Role.findOne({ name: roleName });
-   if (!role) {
-     res.status(404).json({ success: false, message: "Role not found" });
-     return;
-   }
+    if (!role) {
+      res.status(404).json({ success: false, message: "Role not found" });
+      return;
+    }
 
-   // Fetch users with the specific role
-   const users = await User.find({ role: role._id }).select("_id name email");
-   
+    // Fetch users with the specific role
+    const users = await User.find({ role: role._id }).select("_id name email");
+
     res.status(200).json({ success: true, data: users });
   } catch (error) {
     console.error("Error fetching roles:", error);
     res.status(500).json({ success: false, message: "Failed to fetch roles" });
+  }
+};
+
+// Login Controller
+export const login = async (req: Request, res: Response): Promise<void> => {
+  const { email, password } = req.body;
+
+  try {
+    // Find the user by email
+    const user: IUser | null = await User.findOne({ email }).populate("role");
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+    } else {
+
+      // Compare the password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        res.status(401).json({ message: "Invalid credentials" });
+        return
+      }
+
+      // Generate JWT
+      const token = jwt.sign(
+        { userId: user._id, role: user.role },
+        getJwtSecret(),
+        { expiresIn: "1h" }
+      );
+
+      res.status(200).json({ token, userId: user._id });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
