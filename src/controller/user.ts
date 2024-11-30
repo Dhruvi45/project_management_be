@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import User from "../model/user";
+import Role from "../model/role";
+import { roleConstent } from "../commonConst";
 
 // CREATE: Add a new user
 export const addUser = async (req: Request, res: Response) => {
@@ -116,5 +118,35 @@ export const deleteUser = async (req: Request, res: Response) => {
     } else {
       res.status(500).json({ error: "An unknown error occurred" });
     }
+  }
+};
+
+// Controller to fetch users for dropdown
+export const getUserList = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Fetch roles from the database
+    const roleKey = req.query.role as string;
+
+    if (!Object.keys(roleConstent).includes(roleKey)) {
+      res.status(400).json({ success: false, message: "Invalid role provided" });
+      return;
+    }
+
+    const roleName = roleConstent[roleKey as keyof typeof roleConstent];
+
+    // Query the Role model
+    const role = await Role.findOne({ name: roleName });
+   if (!role) {
+     res.status(404).json({ success: false, message: "Role not found" });
+     return;
+   }
+
+   // Fetch users with the specific role
+   const users = await User.find({ role: role._id }).select("_id name email");
+   
+    res.status(200).json({ success: true, data: users });
+  } catch (error) {
+    console.error("Error fetching roles:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch roles" });
   }
 };

@@ -37,9 +37,43 @@ export const addProject = async (req: Request, res: Response) => {
 // READ: Get all projects
 export const getProjects = async (req: Request, res: Response) => {
   try {
-    const projects = await Project.find()
-      .populate("owner", "name email")
-      .populate("members", "name email");
+    const projects = await Project.aggregate([
+      {
+        $lookup: {
+          from: "users", // The collection name for 'owner'
+          localField: "owner",
+          foreignField: "_id",
+          as: "ownerDetails",
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // The collection name for 'members'
+          localField: "members",
+          foreignField: "_id",
+          as: "memberDetails",
+        },
+      },
+      {
+        $addFields: {
+          owner: { $arrayElemAt: ["$ownerDetails.name", 0] }, // Extract owner name
+          members: { $map: { input: "$memberDetails", as: "member", in: "$$member.name" } }, // Extract member names
+        },
+      },
+      {
+        $addFields: {
+          members: { $reduce: { input: "$members", initialValue: "", in: { $concat: ["$$value", { $cond: [{ $eq: ["$$value", ""] }, "", ", "] }, "$$this"] } } }, // Create comma-separated members
+        },
+      },
+      {
+        $project: {
+          ownerDetails: 0, // Exclude unnecessary fields
+          memberDetails: 0,
+          tasks: 0,
+          __v: 0,
+        },
+      },
+    ]);
     res.status(200).json(projects);
   } catch (err: unknown) {
     if (err instanceof Error) {
@@ -54,8 +88,8 @@ export const getProjects = async (req: Request, res: Response) => {
 export const getProjectById = async (req: Request, res: Response) => {
   try {
     const project = await Project.findById(req.params.id)
-      .populate("owner", "name email")
-      .populate("members", "name email");
+      // .populate("owner", "name email")
+      // .populate("members", "name email");
     if (!project) {
       res.status(404).json({ error: "Project not found" });
     }
@@ -127,5 +161,17 @@ export const deleteProject = async (req: Request, res: Response) => {
     } else {
       res.status(500).json({ error: "An unknown error occurred" });
     }
+  }
+};
+
+// Controller to fetch users for dropdown
+export const getProjectList = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Fetch roles from the database
+    const peojects = await Project.find().select("_id title");  
+    res.status(200).json({ success: true, data: peojects });
+  } catch (error) {
+    console.error("Error fetching roles:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch roles" });
   }
 };

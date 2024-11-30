@@ -4,6 +4,7 @@ import {
   deleteUser,
   getUser,
   getUserById,
+  getUserList,
   updateUser,
 } from "../controller/user";
 
@@ -15,5 +16,8 @@ router.get("/users", getUser);
 router.get("/users/:id", getUserById); 
 router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
+
+// Route to get user list for dropdown
+router.get("/usersList", getUserList);
 
 export { router as userRouter };
