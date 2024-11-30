@@ -22,7 +22,7 @@ const seedRoles = async () => {
         name: "Project Manager",
         description: "Manages projects and assigns tasks to team members.",
         permissions: [
-          { resource: "projects", actions: ["create", "edit", "view"] },
+          { resource: "projects", actions: ["create", "edit", "view", "delete"] },
           { resource: "tasks", actions: ["create", "edit", "delete", "view"] },
           { resource: "users", actions: ["create_teamMember", "view_teamMember", "edit_teamMember", "delete_teamMember"] },
         ],
