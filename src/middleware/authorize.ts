@@ -3,17 +3,33 @@ import jwt from "jsonwebtoken";
 import Role from "../model/role";
 import { getJwtSecret } from "../config";
 
+interface Permission {
+  resource: string;
+  actions: string[];
+}
+
+interface Role {
+  // _id: string;
+  name: string;
+  permissions: Permission[];
+}
+
 export interface AuthenticatedRequest extends Request {
   user?: {
     userId: string;
-    role: string;
+    role: Role; // Role type here
   };
+}
+
+// Define the structure of the decoded JWT
+interface DecodedToken {
+  userId: string;
+  role: string; // This will be the role ID from the JWT
 }
 
 export const authorize = (resource: string, action: string) => {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-      console.log('resource', resource, action)
       const authHeader = req.headers.authorization;
 
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -22,11 +38,9 @@ export const authorize = (resource: string, action: string) => {
       }
 
       const token = authHeader.split(" ")[1];
-      const decoded = jwt.verify(
-        token,
-        getJwtSecret()
-      ) as { userId: string; role: string };
-console.log(decoded)
+      const decoded = jwt.verify(token, getJwtSecret()) as DecodedToken; // Use DecodedToken interface
+      console.log(decoded);
+
       const userRoleId = decoded.role;
       const role = await Role.findById(userRoleId).exec();
 
@@ -41,7 +55,9 @@ console.log(decoded)
         return;
       }
 
-      req.user = decoded; // Attach user to request
+      // Attach userId and full role object to request
+      req.user = { userId: decoded.userId, role: role };
+
       next(); // Proceed to the next middleware or route handler
     } catch (error) {
       console.error("Authorization error:", error);

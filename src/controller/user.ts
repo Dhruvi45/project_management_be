@@ -9,7 +9,7 @@ import jwt from "jsonwebtoken";
 import { AuthenticatedRequest } from "../middleware/authorize";
 
 // CREATE: Add a new user
-export const addUser = async (req: Request, res: Response) => {
+export const addUser = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { name, email, password, role } = req.body;
 
@@ -17,6 +17,11 @@ export const addUser = async (req: Request, res: Response) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       res.status(409).json({ error: "Email is already in use" });
+      return;
+    }
+
+    if(req.user?.role?.name ==="Project Manager" && role !=="6745fa8e35a8a8283dba9a8a" ){
+      res.status(400).json({ error: "You have only rights to create team member" });
       return;
     }
     

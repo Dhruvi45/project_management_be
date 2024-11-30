@@ -14,10 +14,10 @@ import { authorize } from '../middleware/authorize';
 const router = express.Router();
 
 router.post("/users", addUser);
-router.get("/users", authorize("users", "change_roles"), getUser);
-router.get("/users/:id", getUserById); 
-router.put('/users/:id', updateUser);
-router.delete('/users/:id', deleteUser);
+router.get("/users", authorize("users", "view"), getUser);
+router.get("/users/:id",authorize("users", "edit"), getUserById); 
+router.put('/users/:id',authorize("users", "edit"), updateUser);
+router.delete('/users/:id',authorize("users", "delete"), deleteUser);
 
 // Route to get user list for dropdown
 router.get("/usersList", getUserList);

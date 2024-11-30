@@ -3,7 +3,7 @@ import Role from "./model/role";
 
 const seedRoles = async () => {
   try {
-      // Data to be inserted
+    // Data to be inserted
     const roles = [
       {
         _id: new mongoose.Types.ObjectId("6745f98c35a8a8283dba9a88"),
@@ -12,11 +12,9 @@ const seedRoles = async () => {
         permissions: [
           { resource: "projects", actions: ["create", "edit", "delete", "view"] },
           {
-            resource: "tasks",
-            actions: ["create", "edit", "delete", "assign", "view_assigned", "comment"],
+            resource: "tasks", actions: ["create", "edit", "delete", "view"],
           },
-          { resource: "users", actions: ["invite", "change_roles"] },
-          { resource: "system", actions: ["view_logs"] },
+          { resource: "users", actions: ["create", "edit", "delete", "view"] },
         ],
       },
       {
@@ -25,8 +23,8 @@ const seedRoles = async () => {
         description: "Manages projects and assigns tasks to team members.",
         permissions: [
           { resource: "projects", actions: ["create", "edit", "view"] },
-          { resource: "tasks", actions: ["create", "edit", "view_assigned", "comment"] },
-          { resource: "users", actions: ["invite"] },
+          { resource: "tasks", actions: ["create", "edit", "delete", "view"] },
+          { resource: "users", actions: ["create_teamMember", "view_teamMember", "edit_teamMember", "delete_teamMember"] },
         ],
       },
       {
@@ -35,7 +33,7 @@ const seedRoles = async () => {
         description: "Contributes to tasks assigned to them and can view projects.",
         permissions: [
           { resource: "projects", actions: ["view"] },
-          { resource: "tasks", actions: ["edit_assigned", "view_assigned", "comment"] },
+          { resource: "tasks", actions: ["edit_detail", "view"] },
         ],
       },
       {

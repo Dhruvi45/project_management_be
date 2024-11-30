@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Project from "../model/project";
 import User from "../model/user";
+import { AuthenticatedRequest } from "../middleware/authorize";
 
 // CREATE: Add a new project
 export const addProject = async (req: Request, res: Response) => {
@@ -202,5 +203,62 @@ export const getProjectMemberList = async (req: Request, res: Response): Promise
   } catch (error) {
     console.error("Error fetching roles:", error);
     res.status(500).json({ success: false, message: "Failed to fetch roles" });
+  }
+};
+
+// Controller to fetch project member wise
+export const getProjectsByUser = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const projects = await Project.aggregate([
+      // Match projects where userId is in members array
+      {
+        $match: {
+          members: { $in: req.user?.userId },
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // The collection name for 'owner'
+          localField: "owner",
+          foreignField: "_id",
+          as: "ownerDetails",
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // The collection name for 'members'
+          localField: "members",
+          foreignField: "_id",
+          as: "memberDetails",
+        },
+      },
+      {
+        $addFields: {
+          owner: { $arrayElemAt: ["$ownerDetails.name", 0] }, // Extract owner name
+          members: { $map: { input: "$memberDetails", as: "member", in: "$$member.name" } }, // Extract member names
+        },
+      },
+      {
+        $addFields: {
+          members: { $reduce: { input: "$members", initialValue: "", in: { $concat: ["$$value", { $cond: [{ $eq: ["$$value", ""] }, "", ", "] }, "$$this"] } } }, // Create comma-separated members
+        },
+      },
+      {
+        $project: {
+          ownerDetails: 0, // Exclude unnecessary fields
+          memberDetails: 0,
+          tasks: 0,
+          __v: 0,
+        },
+      },
+    ]);
+
+    res.status(200).json(projects);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      res.status(400).json({ error: err.message });
+    } else {
+      res.status(500).json({ error: "An unknown error occurred" });
+    }
   }
 };
