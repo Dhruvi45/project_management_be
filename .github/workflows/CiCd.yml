@@ -1,0 +1,58 @@
+name: CI/CD for Node.js on Vercel
+
+# Run the workflow on pushes and pull requests to the main branch
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build Node.js App
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Adjust Node.js version if necessary
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Run tests (optional, remove if not using tests)
+      - name: Run tests
+        run: npm test
+
+      # Step 5: Build the app (if your app needs building; skip otherwise)
+      - name: Build the application
+        run: npm run build
+
+  deploy:
+    name: Deploy to Vercel
+    needs: build # Ensure the build step is completed successfully
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code again for deployment
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Install Vercel CLI
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      # Step 3: Deploy to Vercel
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel --prod --token $VERCEL_TOKEN --yes
