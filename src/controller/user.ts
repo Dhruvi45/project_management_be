@@ -86,7 +86,7 @@ export const getUser = async (req: AuthenticatedRequest, res: Response): Promise
 export const getUserById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const user = await User.findById(id);
+    const user = await User.findById(id).select("_id name email role");
     if (!user) {
       res.status(404).json({ error: "User not found" });
     } else {
