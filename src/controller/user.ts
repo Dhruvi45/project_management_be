@@ -198,7 +198,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         { expiresIn: "1h" }
       );
 
-      res.status(200).json({ token, userId: user._id });
+      res.status(200).json({ token, userId: user._id, role: user.role.name});
     }
   } catch (error) {
     console.error(error);

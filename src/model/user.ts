@@ -5,7 +5,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: mongoose.Types.ObjectId | IRole; // Reference to the Role model
+  role: IRole; // Reference to the Role model
   createdAt: Date;
   updatedAt: Date;
 }
